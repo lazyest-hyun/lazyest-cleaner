@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-package:
+    runs-on: macos-15
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Toolchain
+        run: swift --version
+
+      - name: Validate metadata and script
+        run: |
+          bash -n script/build_and_run.sh
+          plutil -lint Resources/Info.plist
+
+      - name: Test
+        run: |
+          xcrun swift-format lint --recursive Sources Tests Package.swift
+          swift test --disable-sandbox
+
+      - name: Build universal package
+        run: ./script/build_and_run.sh --package
+
+      - name: Verify bundle
+        run: |
+          lipo "dist/Lazyest Cleaner.app/Contents/MacOS/LazyestCleaner" -verify_arch arm64 x86_64
+          codesign --verify --deep --strict --verbose=2 "dist/Lazyest Cleaner.app"
+          unzip -t dist/Lazyest-Cleaner-*-universal.zip

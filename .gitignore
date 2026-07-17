@@ -1,0 +1,11 @@
+.DS_Store
+.build/
+.swiftpm/
+DerivedData/
+dist/
+*.xcuserstate
+xcuserdata/
+
+# Local investigation notes, not product documentation.
+lazycodex_removal_receipt.md
+storage_cleanup_review.md

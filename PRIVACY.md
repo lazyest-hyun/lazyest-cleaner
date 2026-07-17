@@ -1,0 +1,24 @@
+# 개인정보 처리 원칙
+
+Lazyest Cleaner는 로컬 저장 공간 관리 도구다.
+
+## 수집 및 전송
+
+- 계정 생성, 분석 SDK, 광고 SDK, 원격 측정, 오류 보고 업로드를 사용하지 않는다.
+- 스캔 결과, 파일 이름, 경로, 앱 목록, 정리 기록을 외부 서버로 보내지 않는다.
+- 외부 네트워크 요청을 만들지 않는다.
+- Docker 상태 확인과 정리는 로컬 Docker CLI 또는 로컬 Unix 소켓을 통해 로컬 데몬에만 요청한다.
+
+## 로컬 저장
+
+- 사용자 설정과 보호 규칙은 macOS 기본 설정 저장소에 보관한다.
+- 정리 기록은 `~/Library/Application Support/Lazyest Cleaner/history.json`에 최대 200건을 저장한다. 기존 `Lazyest Tidy/history.json` 또는 `TidyMac/history.json` 기록은 처음 실행할 때 한 번 복사한다. 기록에는 액션, 시각, 항목 수, 용량, 성공/실패 수만 포함하고 파일 이름과 경로는 저장하지 않는다.
+- 디렉터리 크기 캐시는 `~/Library/Caches/com.tidymac.cleaner` 아래에 저장되며 로컬 경로와 계산된 크기를 포함할 수 있다.
+
+앱을 제거한 뒤 위 Application Support, Caches, Preferences 데이터를 삭제하면 Lazyest Cleaner가 저장한 로컬 데이터도 제거된다.
+
+## 권한
+
+Lazyest Cleaner는 사용자가 선택한 저장 위치와 macOS가 허용한 폴더만 읽는다. Mail, Messages, 휴지통 등 일부 영역을 스캔하려면 전체 디스크 접근 권한이 필요할 수 있다. 권한은 macOS 시스템 설정에서 사용자가 직접 부여하고 언제든 해제할 수 있다.
+
+정리 실행은 명시적으로 선택하고 확인한 항목에만 적용된다.

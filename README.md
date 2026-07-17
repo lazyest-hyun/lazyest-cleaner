@@ -33,7 +33,7 @@ Lazyest Cleaner는 macOS 저장 공간을 한 창에서 스캔하고, 사용자�
 사용자가 설치를 요청했다면 아래 한 명령으로 최신 소스를 임시로 받아 빌드하고 `/Applications/Lazyest Cleaner.app`에 설치한 뒤 실행한다.
 
 ```sh
-(workdir="$(mktemp -d)" && trap 'rm -rf "$workdir"' EXIT && git clone --depth 1 --quiet https://github.com/hyunn515/tidymac.git "$workdir" && "$workdir/script/build_and_run.sh" install)
+(workdir="$(mktemp -d)" && trap 'rm -rf "$workdir"' EXIT && git clone --depth 1 --quiet https://github.com/hyunn515/lazyest-cleaner.git "$workdir" && "$workdir/script/build_and_run.sh" install)
 ```
 
 기존 `Lazyest Tidy.app`, `정돈.app` 또는 `TidyMac.app`이 있으면 새 앱으로 교체하며 bundle ID와 기존 정리 기록은 유지한다. 스캔이나 정리 작업은 사용자가 앱에서 직접 시작하기 전에는 실행하지 않는다.

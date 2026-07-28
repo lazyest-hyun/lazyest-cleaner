@@ -47,9 +47,45 @@ resolve_signing_identity() {
 
 SIGNING_IDENTITY="$(resolve_signing_identity)"
 
+resolve_swift_interface_args() {
+  local requested_version="${CLEANER_SWIFT_INTERFACE_COMPILER_VERSION:-}"
+  local compiler_version
+  compiler_version="$(/usr/bin/xcrun swift --version | /usr/bin/sed -n 's/.*Apple Swift version \([0-9.]*\).*/\1/p' | /usr/bin/head -n 1)"
+
+  if [[ -z "$requested_version" ]]; then
+    local sdk_path
+    sdk_path="$(/usr/bin/xcrun --sdk macosx --show-sdk-path)"
+    local sdk_interface="$sdk_path/usr/lib/swift/Swift.swiftmodule/arm64e-apple-macos.swiftinterface"
+    if [[ -f "$sdk_interface" ]]; then
+      requested_version="$(/usr/bin/sed -n 's@// swift-compiler-version: Apple Swift version \([0-9.]*\).*@\1@p' "$sdk_interface" | /usr/bin/head -n 1)"
+    fi
+  fi
+
+  if [[ -z "$compiler_version" || -z "$requested_version" || "$compiler_version" == "$requested_version" ]]; then
+    return
+  fi
+
+  if [[ "${compiler_version%.*}" != "${requested_version%.*}" ]]; then
+    printf 'error: Swift compiler %s and macOS SDK interface %s are incompatible; update Command Line Tools or Xcode\n' \
+      "$compiler_version" "$requested_version" >&2
+    exit 1
+  fi
+
+  SWIFT_INTERFACE_ARGS=(-Xswiftc -interface-compiler-version -Xswiftc "$requested_version")
+  printf 'Using macOS SDK Swift interface compatibility %s for compiler %s\n' \
+    "$requested_version" "$compiler_version" >&2
+}
+
+SWIFT_INTERFACE_ARGS=()
+resolve_swift_interface_args
+
+swift_build() {
+  /usr/bin/xcrun swift build --disable-sandbox "${SWIFT_INTERFACE_ARGS[@]}" "$@"
+}
+
 build_debug() {
-  /usr/bin/xcrun swift build --disable-sandbox
-  /usr/bin/xcrun swift build --disable-sandbox --show-bin-path
+  swift_build
+  swift_build --show-bin-path
 }
 
 build_universal() {
@@ -57,21 +93,19 @@ build_universal() {
   local x86_scratch="$ROOT_DIR/.build/universal-x86_64"
   local output="$ROOT_DIR/.build/LazyestCleaner-universal"
 
-  /usr/bin/xcrun swift build \
+  swift_build \
     -c release \
     --triple arm64-apple-macosx14.0 \
-    --disable-sandbox \
     --scratch-path "$arm_scratch"
-  /usr/bin/xcrun swift build \
+  swift_build \
     -c release \
     --triple x86_64-apple-macosx14.0 \
-    --disable-sandbox \
     --scratch-path "$x86_scratch"
 
   local arm_binary
   local x86_binary
-  arm_binary="$(/usr/bin/xcrun swift build -c release --triple arm64-apple-macosx14.0 --disable-sandbox --scratch-path "$arm_scratch" --show-bin-path)/$APP_NAME"
-  x86_binary="$(/usr/bin/xcrun swift build -c release --triple x86_64-apple-macosx14.0 --disable-sandbox --scratch-path "$x86_scratch" --show-bin-path)/$APP_NAME"
+  arm_binary="$(swift_build -c release --triple arm64-apple-macosx14.0 --scratch-path "$arm_scratch" --show-bin-path)/$APP_NAME"
+  x86_binary="$(swift_build -c release --triple x86_64-apple-macosx14.0 --scratch-path "$x86_scratch" --show-bin-path)/$APP_NAME"
   /bin/rm -f "$output"
   /usr/bin/lipo -create "$arm_binary" "$x86_binary" -output "$output"
   printf '%s\n' "$output"

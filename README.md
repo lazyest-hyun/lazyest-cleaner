@@ -33,17 +33,22 @@ Lazyest Cleaner는 macOS 저장 공간을 한 창에서 스캔하고, 사용자�
 사용자가 설치를 요청했다면 아래 한 명령으로 최신 소스를 임시로 받아 빌드하고 `/Applications/Lazyest Cleaner.app`에 설치한 뒤 실행한다.
 
 ```sh
-(workdir="$(mktemp -d)" && trap 'rm -rf "$workdir"' EXIT && git clone --depth 1 --quiet https://github.com/hyunn515/lazyest-cleaner.git "$workdir" && "$workdir/script/build_and_run.sh" install)
+(workdir="$(mktemp -d)" && trap 'rm -rf "$workdir"' EXIT && git clone --depth 1 --quiet https://github.com/lazyest-hyun/lazyest-cleaner.git "$workdir" && "$workdir/script/build_and_run.sh" install)
 ```
 
 기존 `Lazyest Tidy.app`, `정돈.app` 또는 `TidyMac.app`이 있으면 새 앱으로 교체하며 bundle ID와 기존 정리 기록은 유지한다. 스캔이나 정리 작업은 사용자가 앱에서 직접 시작하기 전에는 실행하지 않는다.
+
+## 공개 다운로드
+
+일반 사용자는 [최신 GitHub Release](https://github.com/lazyest-hyun/lazyest-cleaner/releases/latest)의 DMG 또는 ZIP을 내려받는다. 공개 배포 파일은 Universal Binary로 만들고 Developer ID 서명, Apple 공증, 스테이플 및 Gatekeeper 검증을 완료한다.
 
 ## 로컬 빌드 및 검증
 
 요구 사항:
 
 - macOS 14 이상
-- Swift 6을 포함한 Xcode Command Line Tools
+- 앱 빌드: Swift 6을 포함한 Xcode Command Line Tools
+- XCTest 테스트 실행: XCTest가 포함된 Xcode 또는 Command Line Tools
 
 ```bash
 swift test --disable-sandbox
@@ -57,6 +62,22 @@ swift test --disable-sandbox
 ```
 
 결과는 `dist/Lazyest Cleaner.app`과 `dist/Lazyest-Cleaner-<version>-universal.zip`에 생성된다. 스크립트는 사용 가능한 Developer ID 또는 Apple Development 인증서를 우선 사용하고, 인증서가 없으면 로컬 검증용 ad hoc 서명을 적용한다. 외부 배포에는 별도의 Developer ID 서명과 Apple 공증이 필요하다.
+
+공개 배포 패키지는 인증서와 Keychain 공증 프로필이 준비된 Mac에서만 생성한다. 인증 값은 저장소에 기록하지 않는다.
+
+```bash
+CLEANER_CODESIGN_IDENTITY="Developer ID Application: ..." \
+CLEANER_TEAM_ID="..." \
+CLEANER_NOTARY_PROFILE="lazyest-notary" \
+./script/package_macos_release.sh --preflight
+
+CLEANER_CODESIGN_IDENTITY="Developer ID Application: ..." \
+CLEANER_TEAM_ID="..." \
+CLEANER_NOTARY_PROFILE="lazyest-notary" \
+./script/package_macos_release.sh
+```
+
+완료되면 `dist/Lazyest-Cleaner-<version>-universal.zip`, DMG 및 각 SHA-256 파일이 생성된다. 이 스크립트는 GitHub 태그나 Release를 만들지 않는다.
 
 ## 구조
 

@@ -40,7 +40,7 @@ Lazyest Cleaner는 macOS 저장 공간을 한 창에서 스캔하고, 사용자�
 
 ## 공개 다운로드
 
-일반 사용자는 [최신 GitHub Release](https://github.com/lazyest-hyun/lazyest-cleaner/releases/latest)의 DMG 또는 ZIP을 내려받는다. 공개 배포 파일은 Universal Binary로 만들고 Developer ID 서명, Apple 공증, 스테이플 및 Gatekeeper 검증을 완료한다.
+일반 사용자는 [최신 GitHub Release](https://github.com/lazyest-hyun/lazyest-cleaner/releases/latest)의 PKG 설치 프로그램을 내려받는다. 공개 배포 파일은 Universal Binary로 만들고 Developer ID 서명, Apple 공증, 스테이플 및 Gatekeeper 검증을 완료한다.
 
 ## 로컬 빌드 및 검증
 
@@ -67,17 +67,19 @@ swift test --disable-sandbox
 
 ```bash
 CLEANER_CODESIGN_IDENTITY="Developer ID Application: ..." \
+CLEANER_INSTALLER_IDENTITY="Developer ID Installer: ..." \
 CLEANER_TEAM_ID="..." \
 CLEANER_NOTARY_PROFILE="lazyest-notary" \
 ./script/package_macos_release.sh --preflight
 
 CLEANER_CODESIGN_IDENTITY="Developer ID Application: ..." \
+CLEANER_INSTALLER_IDENTITY="Developer ID Installer: ..." \
 CLEANER_TEAM_ID="..." \
 CLEANER_NOTARY_PROFILE="lazyest-notary" \
 ./script/package_macos_release.sh
 ```
 
-완료되면 `dist/Lazyest-Cleaner-<version>-universal.zip`, DMG 및 각 SHA-256 파일이 생성된다. 이 스크립트는 GitHub 태그나 Release를 만들지 않는다.
+완료되면 `dist/Lazyest-Cleaner-<version>-universal.pkg`와 SHA-256 파일이 생성된다. 이 스크립트는 GitHub 태그나 Release를 만들지 않는다.
 
 ## 구조
 

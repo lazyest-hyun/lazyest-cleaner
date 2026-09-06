@@ -26,6 +26,12 @@ struct CleanupDetailView: View {
         } else if store.isScanning && store.scanningCategory == store.selectedCategory {
             ContentUnavailableView {
                 Label("스캔 중", systemImage: "externaldrive.badge.timemachine")
+            } actions: {
+                // Keep the empty-state title in place when scanning replaces its action.
+                UnifiedActionButton(action: .scan, presentation: .bordered)
+                    .hidden()
+                    .accessibilityHidden(true)
+                    .allowsHitTesting(false)
             }
         } else if store.selectedCategory == .custom && store.settings.customScanRoots.isEmpty {
             ContentUnavailableView {
@@ -69,6 +75,7 @@ private struct ScanProgressTrack: View {
             }
         }
         .frame(height: 3)
+        .clipped()
         .help(store.scanStatusTitle ?? "스캔 대기")
         .accessibilityLabel(store.scanStatusTitle ?? "스캔 대기")
     }
@@ -98,25 +105,33 @@ private struct DetailHeader: View {
     var body: some View {
         let categories = store.selectedWorkspace.categories.filter(\.supportsScan)
         VStack(spacing: DesignTokens.spacing8) {
-            if categories.count > 1 {
-                Picker("분류", selection: categorySelection) {
-                    ForEach(categories) { category in
-                        Text(category.title).tag(category)
+            HStack(spacing: DesignTokens.spacing8) {
+                Image(systemName: store.selectedCategory.symbol)
+                    .frame(width: DesignTokens.labelIconWidth)
+                Text(store.selectedCategory.title)
+                    .font(.headline)
+                    .lineLimit(1)
+                if categories.count > 1 {
+                    Menu {
+                        Picker("분류", selection: categorySelection) {
+                            ForEach(categories) { category in
+                                Text(category.title).tag(category)
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "chevron.down")
+                            .font(.caption.weight(.semibold))
+                            .frame(width: 28, height: 28)
                     }
+                    .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .fixedSize()
+                    .help("세부 분류를 전환합니다.")
+                    .accessibilityLabel("세부 분류 선택")
                 }
-                .labelsHidden()
-                .pickerStyle(.menu)
-                .help("세부 분류를 전환합니다.")
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .frame(height: 28)
-            } else {
-                HStack {
-                    Label(store.selectedCategory.title, systemImage: store.selectedCategory.symbol)
-                        .font(.headline)
-                    Spacer()
-                }
-                .frame(height: 28)
+                Spacer()
             }
+            .frame(height: 28)
 
             HStack(spacing: DesignTokens.spacing12) {
                 Text("\(DisplayFormatting.count(store.visibleItems.count))개")
@@ -141,6 +156,7 @@ private struct DetailHeader: View {
                         .opacity(store.isPreparingAction ? 1 : 0)
                 }
                 .frame(width: 16, height: 16)
+                .accessibilityHidden(!store.isPreparingAction)
                 .help(store.isPreparingAction ? "앱 데이터 확인 중" : "대기")
                 FilterMenu()
                 DetailSortMenu()

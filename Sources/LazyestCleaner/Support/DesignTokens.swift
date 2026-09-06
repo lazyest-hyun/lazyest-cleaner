@@ -10,8 +10,23 @@ enum DesignTokens {
     static let cornerRadius: CGFloat = 6
     static let compactCornerRadius: CGFloat = 4
     static let iconButtonSize: CGFloat = 30
+    static let labelIconWidth: CGFloat = 20
     static let tableRowHeight: CGFloat = 34
     static let sidebarIdealWidth: CGFloat = 240
     static let minimumWindowWidth: CGFloat = 860
     static let minimumWindowHeight: CGFloat = 620
+}
+
+/// SF Symbols have different intrinsic widths; peer rows share one text origin.
+struct AlignedSymbolLabel: View {
+    let title: String
+    let systemImage: String
+
+    var body: some View {
+        HStack(spacing: DesignTokens.spacing8) {
+            Image(systemName: systemImage)
+                .frame(width: DesignTokens.labelIconWidth)
+            Text(title)
+        }
+    }
 }

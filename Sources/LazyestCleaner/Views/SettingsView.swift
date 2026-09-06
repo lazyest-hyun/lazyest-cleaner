@@ -1,7 +1,13 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @State private var section: SettingsSection = .general
+    @State private var section: SettingsSection
+    private let protectionHome: URL?
+
+    init(section: SettingsSection = .general, protectionHome: URL? = nil) {
+        _section = State(initialValue: section)
+        self.protectionHome = protectionHome
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -13,7 +19,7 @@ struct SettingsView: View {
                 }
                 .labelsHidden()
                 .pickerStyle(.segmented)
-                .frame(width: 380)
+                .frame(width: 380, alignment: .leading)
                 Spacer()
             }
             .padding(.horizontal, DesignTokens.spacing16)
@@ -27,14 +33,14 @@ struct SettingsView: View {
             case .locations:
                 ScanLocationsPane()
             case .protection:
-                ProtectionSettingsPane()
+                ProtectionSettingsPane(home: protectionHome)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
-private enum SettingsSection: CaseIterable, Identifiable {
+enum SettingsSection: CaseIterable, Identifiable {
     case general
     case locations
     case protection
@@ -65,17 +71,17 @@ private struct GeneralSettingsPane: View {
         @Bindable var settings = store.settings
         List {
             Section("스캔") {
-                Toggle("화면을 열 때 자동 스캔", isOn: $settings.autoScan)
+                SettingsToggle(title: "화면을 열 때 자동 스캔", isOn: $settings.autoScan)
                     .help("처음 연 분류를 자동으로 스캔합니다.")
-                Toggle("숨김 파일 포함", isOn: $settings.includeHiddenFiles)
+                SettingsToggle(title: "숨김 파일 포함", isOn: $settings.includeHiddenFiles)
                     .help("사용자 파일 스캔에 숨김 파일을 포함합니다.")
-                Toggle(
-                    "전체 스캔에 시스템 앱 포함",
+                SettingsToggle(
+                    title: "전체 스캔에 시스템 앱 포함",
                     isOn: $settings.includeSystemApplicationsInFullScan
                 )
                 .help("읽기 전용 시스템 앱 목록도 전체 스캔에서 계산합니다.")
-                Toggle(
-                    "전체 스캔에 Docker 포함",
+                SettingsToggle(
+                    title: "전체 스캔에 Docker 포함",
                     isOn: $settings.includeDockerInFullScan
                 )
                 .help("Docker 엔진 조회를 전체 스캔에 포함합니다.")
@@ -89,8 +95,14 @@ private struct GeneralSettingsPane: View {
                 }
                 .help("대용량 파일로 표시할 최소 크기입니다.")
 
-                Stepper(value: $settings.oldFileDays, in: 7...730, step: 7) {
-                    LabeledContent("오래된 파일", value: "\(settings.oldFileDays)일")
+                HStack {
+                    Text("오래된 파일")
+                    Spacer()
+                    Text("\(settings.oldFileDays)일")
+                        .monospacedDigit()
+                    Stepper("오래된 파일", value: $settings.oldFileDays, in: 7...730, step: 7)
+                        .labelsHidden()
+                        .fixedSize()
                 }
                 .help("수정일이 이 기간보다 오래된 파일을 표시합니다.")
 
@@ -104,13 +116,29 @@ private struct GeneralSettingsPane: View {
             }
 
             Section("실행") {
-                Toggle("즉시 삭제 허용", isOn: $settings.allowImmediateRemoval)
+                SettingsToggle(title: "즉시 삭제 허용", isOn: $settings.allowImmediateRemoval)
                     .help("캐시와 로그에만 휴지통 없는 삭제를 허용합니다.")
-                Toggle("Docker 볼륨 포함", isOn: $settings.includeDockerVolumes)
+                SettingsToggle(title: "Docker 볼륨 포함", isOn: $settings.includeDockerVolumes)
                     .help("미사용 볼륨을 Docker 정리 후보에 포함합니다.")
             }
         }
         .listStyle(.inset)
+    }
+}
+
+private struct SettingsToggle: View {
+    let title: String
+    @Binding var isOn: Bool
+
+    var body: some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Toggle(title, isOn: $isOn)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+        }
     }
 }
 
@@ -138,18 +166,19 @@ private struct ScanLocationsPane: View {
 
 private struct ProtectionSettingsPane: View {
     @Environment(CleanupStore.self) private var store
+    let home: URL?
 
     var body: some View {
-        let builtIns = ProtectionPolicy().rules.filter(\.isBuiltIn)
+        let builtIns = ProtectionPolicy(home: home).rules.filter(\.isBuiltIn)
         List {
             Section("기본") {
-                Label("현재 실행 중인 앱", systemImage: "app.badge.checkmark")
+                AlignedSymbolLabel(title: "현재 실행 중인 앱", systemImage: "app.badge.checkmark")
                     .help("실행 중인 앱은 제거할 수 없습니다.")
                 ForEach(builtIns) { rule in
                     HStack(spacing: DesignTokens.spacing8) {
                         Image(systemName: "lock.fill")
                             .foregroundStyle(.secondary)
-                            .frame(width: 20)
+                            .frame(width: DesignTokens.labelIconWidth)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(rule.reason)
                             Text(rule.url.path)
@@ -187,7 +216,7 @@ private struct LocationRow: View {
     var body: some View {
         HStack(spacing: DesignTokens.spacing8) {
             Image(systemName: url.pathExtension == "app" ? "app" : "folder")
-                .frame(width: 20)
+                .frame(width: DesignTokens.labelIconWidth)
             Text(url.path)
                 .font(.callout.monospaced())
                 .lineLimit(1)
@@ -222,8 +251,8 @@ private struct SettingsListBar: View {
             .accessibilityLabel("추가")
             Spacer()
         }
-        .padding(.horizontal, DesignTokens.spacing12)
-        .padding(.vertical, DesignTokens.spacing4)
+        .padding(.horizontal, DesignTokens.spacing16)
+        .frame(height: 52)
         .background(.bar)
         .overlay(alignment: .top) { Divider() }
     }

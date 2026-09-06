@@ -2,7 +2,7 @@
 
 Lazyest Cleaner는 macOS 저장 공간을 한 창에서 스캔하고, 사용자가 확인한 항목만 정리하는 네이티브 SwiftUI 앱이다. macOS 14 이상과 Apple Silicon/Intel Mac을 지원한다.
 
-현재 버전은 **1.1.0**입니다.
+현재 버전은 **1.1.1**입니다.
 
 ![Lazyest Cleaner 저장 공간 개요](docs/images/cleaner-overview.png)
 
@@ -48,7 +48,7 @@ Lazyest Cleaner는 macOS 저장 공간을 한 창에서 스캔하고, 사용자�
 
 ## 설치와 배포 상태
 
-2026년 9월 6일 기준 **1.1.0 Apple Silicon·Intel 공용 DMG**를 로컬에서 준비하고 앱·DMG의 Developer ID 서명, Apple 공증, 스테이플과 Gatekeeper 검증을 완료했습니다. 이 새 버전은 아직 공개 GitHub Release에 게시하지 않았습니다. 공개 페이지에 남아 있는 PKG는 이전 버전이며 이번 DMG와 다릅니다.
+2026년 9월 7일 기준 **1.1.1 Apple Silicon·Intel 공용 DMG**를 로컬에서 준비하고 앱·DMG의 Developer ID 서명, Apple 공증, 스테이플과 Gatekeeper 검증을 완료했습니다. 이 새 버전은 아직 공개 GitHub Release에 게시하지 않았습니다. 공개 페이지에 남아 있는 PKG는 이전 버전이며 이번 DMG와 다릅니다.
 
 공개되면 DMG와 SHA-256 체크섬을 확인한 뒤 앱을 `/Applications`로 옮겨 실행합니다. 지금 소스에서 설치하려면 위 설치 명령을 사용합니다.
 
@@ -130,4 +130,4 @@ LAZYEST_NOTARY_PROFILE="lazyest-notary" \
 scripts/package-dmg.sh "$PWD/dist/Lazyest Cleaner.app" "$PWD/dist/Lazyest-Cleaner-macOS.dmg"
 ```
 
-DMG를 열고 앱을 Applications로 옮긴 뒤 `/Applications`의 앱을 실행합니다. 현재 검증한 1.1.0 DMG는 Apple Silicon·Intel 공용용입니다. 다른 CPU용 배포를 추가하려면 해당 빌드와 실행을 별도로 검증해야 합니다. 소스 변경 후에는 앱을 다시 빌드하고 서명해야 합니다.
+DMG를 열고 앱을 Applications로 옮긴 뒤 `/Applications`의 앱을 실행합니다. 현재 검증한 1.1.1 DMG는 Apple Silicon·Intel 공용입니다. 다른 CPU용 배포를 추가하려면 해당 빌드와 실행을 별도로 검증해야 합니다. 소스 변경 후에는 앱을 다시 빌드하고 서명해야 합니다.

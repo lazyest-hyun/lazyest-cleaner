@@ -55,7 +55,7 @@ private struct SidebarWorkspaceRow: View {
     var body: some View {
         let summary = store.summary(for: workspace)
         HStack(spacing: DesignTokens.spacing8) {
-            Label(workspace.title, systemImage: workspace.symbol)
+            AlignedSymbolLabel(title: workspace.title, systemImage: workspace.symbol)
                 .lineLimit(1)
             Spacer(minLength: DesignTokens.spacing8)
             ZStack(alignment: .trailing) {
@@ -86,6 +86,7 @@ private struct SidebarFooter: View {
         HStack(spacing: DesignTokens.spacing8) {
             if let snapshot = store.storageSnapshot {
                 Image(systemName: "internaldrive")
+                    .frame(width: DesignTokens.labelIconWidth)
                     .foregroundStyle(.secondary)
                 Text("\(DisplayFormatting.bytes(snapshot.available)) 여유")
                     .font(.caption.monospacedDigit())

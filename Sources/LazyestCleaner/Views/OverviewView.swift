@@ -5,30 +5,30 @@ struct OverviewView: View {
         VStack(spacing: 0) {
             StorageHeader()
             Divider()
-            if storeNeedsFullDiskAccess {
-                FullDiskAccessRow()
-                Divider()
-            }
+            FullDiskAccessRow()
+            Divider()
             QuickCleanRow()
             Divider()
             WorkspaceResultsList()
         }
     }
-
-    @Environment(CleanupStore.self) private var store
-
-    private var storeNeedsFullDiskAccess: Bool {
-        store.needsFullDiskAccess
-    }
 }
 
 private struct FullDiskAccessRow: View {
+    @Environment(CleanupStore.self) private var store
+
     var body: some View {
         HStack(spacing: DesignTokens.spacing12) {
-            Label("전체 디스크 접근 권한", systemImage: "lock.shield")
+            AlignedSymbolLabel(title: "전체 디스크 접근", systemImage: "lock.shield")
                 .font(.callout.weight(.medium))
             Spacer()
-            UnifiedActionButton(action: .openFullDiskAccess, presentation: .bordered)
+            if store.needsFullDiskAccess {
+                UnifiedActionButton(action: .openFullDiskAccess, presentation: .bordered)
+            } else {
+                Text(store.hasCheckedFullDiskAccess ? "허용됨" : "확인 중")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding(.horizontal, DesignTokens.spacing16)
         .frame(height: 48)
@@ -48,6 +48,7 @@ private struct StorageHeader: View {
                     Text(store.storageSnapshot.map { DisplayFormatting.bytes($0.available) } ?? "-")
                         .font(.title2.monospacedDigit().weight(.semibold))
                 }
+                .frame(width: 140, alignment: .leading)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("정리 후보")
@@ -56,20 +57,24 @@ private struct StorageHeader: View {
                     Text(DisplayFormatting.bytes(store.totalCandidateBytes))
                         .font(.title2.monospacedDigit().weight(.semibold))
                 }
+                .frame(width: 140, alignment: .leading)
 
                 Spacer()
 
                 OverviewScanControl()
             }
 
-            if let snapshot = store.storageSnapshot {
-                Gauge(value: snapshot.usedFraction) {
-                    EmptyView()
-                }
-                .gaugeStyle(.linearCapacity)
-                .tint(snapshot.usedFraction > 0.9 ? .red : .accentColor)
-                .help("사용 \(DisplayFormatting.bytes(snapshot.used)) · 전체 \(DisplayFormatting.bytes(snapshot.total))")
+            Gauge(value: store.storageSnapshot?.usedFraction ?? 0) {
+                EmptyView()
             }
+            .gaugeStyle(.linearCapacity)
+            .tint((store.storageSnapshot?.usedFraction ?? 0) > 0.9 ? .red : .accentColor)
+            .opacity(store.storageSnapshot == nil ? 0 : 1)
+            .accessibilityHidden(store.storageSnapshot == nil)
+            .help(
+                store.storageSnapshot.map {
+                    "사용 \(DisplayFormatting.bytes($0.used)) · 전체 \(DisplayFormatting.bytes($0.total))"
+                } ?? "저장 공간 확인 중")
 
             ZStack {
                 Color.clear
@@ -80,6 +85,7 @@ private struct StorageHeader: View {
                 }
             }
             .frame(height: 3)
+            .clipped()
         }
         .padding(DesignTokens.spacing16)
         .frame(height: 132)

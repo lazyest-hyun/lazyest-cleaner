@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-09-07",
+  "evidenceType": "source-layout-constraints-not-measured-native-frames",
+  "unit": "pt",
+  "nativeWindowCoordinatesMeasured": false,
+  "nativeNavigationTitle": {
+    "owner": "ContentView",
+    "sharedAcross": ["overview", "quick", "applications", "files", "appData", "developer", "history", "settings"],
+    "position": "managed by NavigationSplitView and macOS; not measured"
+  },
+  "sidebar": {"minimumWidth": 184, "idealWidth": 210, "maximumWidth": 242, "labelIconWidth": 20, "labelGap": 8, "statusWidth": 34},
+  "cleanupDetail": {"horizontalInset": 16, "headerHeight": 84, "headerRowHeight": 28, "headerRowGap": 8, "titleIconWidth": 20, "titleGap": 8, "progressTrackHeight": 3, "footerHeight": 52, "scope": "all 16 scan categories"},
+  "overview": {"storageHeaderHeight": 132, "metricColumnWidth": 140, "metricColumnGap": 24, "permissionRowHeight": 48, "horizontalInset": 16, "permissionRowAlwaysPresent": true, "gaugeSpaceAlwaysReserved": true},
+  "settings": {"sharedTabBarOutsidePaneSwitch": true, "tabFrameWidth": 380, "tabAlignment": "leading", "horizontalInset": 16, "verticalTabInset": 12, "locationAndProtectionFooterHeight": 52, "generalFooter": "none; no list-add action", "rowIconWidth": 20},
+  "history": {"dateColumnWidth": 144, "actionColumnMinWidth": 110, "actionColumnIdealWidth": 142, "actionColumnMaxWidth": 240, "countColumnWidth": 44, "sizeColumnWidth": 88, "resultColumnWidth": 100, "nativeTableInsets": "managed by macOS; not measured"},
+  "confirmation": {"width": 540, "height": 430, "horizontalInset": 16, "titleIconWidth": 34},
+  "renderCorpus": {"scenarioCount": 57, "sizesPt": [[1180, 760], [860, 620], [540, 430]], "pngSizesPixels": [[2360, 1520], [1720, 1240], [1080, 860]], "data": "synthetic", "sidebarAndTitle": "static documentation shell", "body": "production SwiftUI views"}
+}

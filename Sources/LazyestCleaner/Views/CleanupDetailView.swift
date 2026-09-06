@@ -105,8 +105,9 @@ private struct DetailHeader: View {
                     }
                 }
                 .labelsHidden()
-                .pickerStyle(.segmented)
+                .pickerStyle(.menu)
                 .help("세부 분류를 전환합니다.")
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .frame(height: 28)
             } else {
                 HStack {

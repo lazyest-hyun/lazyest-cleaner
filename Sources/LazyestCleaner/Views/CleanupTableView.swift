@@ -4,59 +4,65 @@ struct CleanupTableView: View {
     @Environment(CleanupStore.self) private var store
 
     var body: some View {
-        Table(store.visibleItems, selection: selection) {
-            TableColumn("") { item in
-                SelectionToggle(item: item)
-            }
-            .width(34)
+        GeometryReader { geometry in
+            Table(store.visibleItems, selection: selection) {
+                TableColumn("") { item in
+                    SelectionToggle(item: item)
+                        .environment(store)
+                }
+                .width(34)
 
-            TableColumn("항목") { item in
-                HStack(spacing: DesignTokens.spacing8) {
-                    ItemIconView(item: item, size: 24)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(item.name)
-                            .lineLimit(1)
-                        Text(item.source)
-                            .font(.caption)
+                TableColumn("항목") { item in
+                    HStack(spacing: DesignTokens.spacing8) {
+                        ItemIconView(item: item, size: 24)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(item.name)
+                                .lineLimit(1)
+                            Text(item.source)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                        if item.recommendation == .recommended && !item.isProtected {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                                .help("추천")
+                                .accessibilityLabel("추천")
+                        }
+                    }
+                    .help(item.url?.path ?? item.source)
+                }
+                .width(min: 160, ideal: 260, max: 420)
+
+                TableColumn("크기") { item in
+                    Text(DisplayFormatting.bytes(item.size))
+                        .font(.callout.monospacedDigit())
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                .width(min: 76, ideal: 90, max: 110)
+
+                TableColumn(geometry.size.width >= 720 ? "수정" : "") { item in
+                    if geometry.size.width >= 720 {
+                        Text(DisplayFormatting.date(item.modifiedAt))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
-                    if item.recommendation == .recommended && !item.isProtected {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                            .help("추천")
-                            .accessibilityLabel("추천")
-                    }
                 }
-                .help(item.url?.path ?? item.source)
-            }
-            .width(min: 240, ideal: 420)
+                .width(geometry.size.width >= 720 ? 96 : 0)
 
-            TableColumn("크기") { item in
-                Text(DisplayFormatting.bytes(item.size))
-                    .font(.callout.monospacedDigit())
-                    .frame(maxWidth: .infinity, alignment: .trailing)
+                TableColumn("상태") { item in
+                    RiskMarkView(risk: item.risk, compact: true)
+                }
+                .width(min: 76, ideal: 86, max: 96)
             }
-            .width(min: 76, ideal: 90, max: 110)
-
-            TableColumn("수정") { item in
-                Text(DisplayFormatting.date(item.modifiedAt))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+            .tableStyle(.inset(alternatesRowBackgrounds: false))
+            .contextMenu(forSelectionType: String.self) { ids in
+                TableContextMenu(ids: ids)
+                    .environment(store)
+            } primaryAction: { ids in
+                store.setSelection(ids)
+                store.requestAction(.reveal)
             }
-            .width(min: 82, ideal: 96, max: 116)
-
-            TableColumn("상태") { item in
-                RiskMarkView(risk: item.risk, compact: true)
-            }
-            .width(min: 76, ideal: 86, max: 96)
-        }
-        .tableStyle(.inset(alternatesRowBackgrounds: false))
-        .contextMenu(forSelectionType: String.self) { ids in
-            TableContextMenu(ids: ids)
-        } primaryAction: { ids in
-            store.setSelection(ids)
-            store.requestAction(.reveal)
         }
     }
 

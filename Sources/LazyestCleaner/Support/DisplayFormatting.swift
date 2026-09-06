@@ -2,7 +2,7 @@ import Foundation
 
 enum DisplayFormatting {
     static func bytes(_ value: Int64) -> String {
-        ByteCountFormatter.string(fromByteCount: value, countStyle: .file)
+        value == 0 ? "0 B" : ByteCountFormatter.string(fromByteCount: value, countStyle: .file)
     }
 
     static func date(_ value: Date?) -> String {

@@ -11,10 +11,7 @@ actor HistoryRepository {
                 fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
                 ?? fileManager.homeDirectoryForCurrentUser.appending(path: "Library/Application Support")
             let current = root.appending(path: "Lazyest Cleaner/history.json")
-            let legacyCandidates = [
-                root.appending(path: "Lazyest Tidy/history.json"),
-                root.appending(path: "TidyMac/history.json"),
-            ]
+            let legacyCandidates = LegacyMigration.historyPaths.map { root.appending(path: $0) }
             if !fileManager.fileExists(atPath: current.path),
                 let legacy = legacyCandidates.first(where: { candidate in
                     fileManager.fileExists(atPath: candidate.path)

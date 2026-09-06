@@ -4,8 +4,11 @@ set -euo pipefail
 MODE="${1:-run}"
 APP_NAME="LazyestCleaner"
 DISPLAY_NAME="Lazyest Cleaner"
-BUNDLE_ID="com.tidymac.cleaner"
-LEGACY_APP_NAME="TidyMac"
+BUNDLE_ID="com.lazyest.cleaner"
+case "$MODE" in
+  install|--install|run|build|--build|--demo|demo|--debug|debug|--logs|logs|--telemetry|telemetry|--verify|verify|--package|package) ;;
+  *) printf 'usage: %s [install|run|build|--demo|--debug|--logs|--telemetry|--verify|--package]\n' "$0" >&2; exit 2 ;;
+esac
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DIST_DIR="$ROOT_DIR/dist"
@@ -31,7 +34,7 @@ resolve_signing_identity() {
   identities="$(/usr/bin/security find-identity -p codesigning -v 2>/dev/null || true)"
 
   local pattern
-  for pattern in "Developer ID Application:" "Apple Development:" "Lazyest Cleaner Local Development" "Lazyest Tidy Local Development" "TidyMac Local Development"; do
+  for pattern in "Developer ID Application:" "Apple Development:" "Lazyest Cleaner Local Development"; do
     local identity
     identity="$(printf '%s\n' "$identities" | /usr/bin/awk -F '"' -v pattern="$pattern" '
       index($2, pattern) { print $2; exit }
@@ -80,12 +83,14 @@ SWIFT_INTERFACE_ARGS=()
 resolve_swift_interface_args
 
 swift_build() {
-  /usr/bin/xcrun swift build --disable-sandbox "${SWIFT_INTERFACE_ARGS[@]}" "$@"
+  /usr/bin/xcrun swift build --disable-sandbox "${SWIFT_INTERFACE_ARGS[@]}" -Xswiftc -gnone -Xswiftc -file-prefix-map -Xswiftc "$ROOT_DIR=." "$@"
 }
 
-build_debug() {
-  swift_build
-  swift_build --show-bin-path
+build_native() {
+  local configuration=release
+  case "$MODE" in run|--demo|demo|--debug|debug|--logs|logs|--telemetry|telemetry|--verify|verify) configuration=debug ;; esac
+  swift_build -c "$configuration"
+  swift_build -c "$configuration" --show-bin-path
 }
 
 build_universal() {
@@ -124,6 +129,7 @@ stage_bundle() {
 }
 
 sign_bundle() {
+  case "$MODE" in --debug|debug) ;; *) "$ROOT_DIR/scripts/prepare-release-binary.sh" "$APP_BINARY" ;; esac
   local sign_args=(--force --sign "$SIGNING_IDENTITY")
   if [[ "$SIGNING_IDENTITY" == Developer\ ID\ Application:* ]]; then
     sign_args+=(--options runtime --timestamp)
@@ -141,26 +147,31 @@ create_archive() {
 }
 
 open_app() {
-  /usr/bin/open -n "$APP_BUNDLE" "$@"
+  /usr/bin/pkill -x "$APP_NAME" >/dev/null 2>&1 || true
+  /usr/bin/open "$APP_BUNDLE" "$@"
 }
 
 install_app() {
+  local staging_root
+  staging_root="$(/usr/bin/mktemp -d "/Applications/.lazyest-cleaner-install.XXXXXX")"
+  local staged_app="$staging_root/$DISPLAY_NAME.app"
+  local previous_app="$staging_root/previous.app"
+  if ! /usr/bin/ditto "$APP_BUNDLE" "$staged_app" || ! /usr/bin/codesign --verify --deep --strict "$staged_app"; then
+    /bin/rm -rf "$staging_root"
+    return 1
+  fi
   /usr/bin/pkill -x "$APP_NAME" >/dev/null 2>&1 || true
-  /usr/bin/pkill -x "LazyestTidy" >/dev/null 2>&1 || true
-  /usr/bin/pkill -x "$LEGACY_APP_NAME" >/dev/null 2>&1 || true
-  /bin/rm -rf "$INSTALLED_APP"
-  /usr/bin/ditto "$APP_BUNDLE" "$INSTALLED_APP"
-  for legacy_app in "/Applications/Lazyest Tidy.app" "/Applications/정돈.app" "/Applications/TidyMac.app"; do
-    if [[ "$legacy_app" != "$INSTALLED_APP" && -d "$legacy_app" ]]; then
-      /bin/rm -rf "$legacy_app"
-    fi
-  done
+  if [[ -d "$INSTALLED_APP" ]]; then /bin/mv "$INSTALLED_APP" "$previous_app"; fi
+  if ! /bin/mv "$staged_app" "$INSTALLED_APP"; then
+    if [[ -d "$previous_app" ]]; then /bin/mv "$previous_app" "$INSTALLED_APP"; fi
+    /bin/rm -rf "$staging_root"
+    return 1
+  fi
+  /bin/rm -rf "$staging_root"
+  "$ROOT_DIR/script/migrate_legacy_install.sh"
   /usr/bin/open "$INSTALLED_APP"
 }
 
-/usr/bin/pkill -x "$APP_NAME" >/dev/null 2>&1 || true
-/usr/bin/pkill -x "LazyestTidy" >/dev/null 2>&1 || true
-/usr/bin/pkill -x "$LEGACY_APP_NAME" >/dev/null 2>&1 || true
 /bin/mkdir -p "$DIST_DIR"
 cd "$ROOT_DIR"
 printf 'Signing identity: %s\n' "$SIGNING_IDENTITY"
@@ -168,13 +179,16 @@ printf 'Signing identity: %s\n' "$SIGNING_IDENTITY"
 if [[ "$MODE" == "--package" || "$MODE" == "package" ]]; then
   BUILD_BINARY="$(build_universal | /usr/bin/tail -n 1)"
 else
-  BUILD_BINARY="$(build_debug | /usr/bin/tail -n 1)/$APP_NAME"
+  BUILD_BINARY="$(build_native | /usr/bin/tail -n 1)/$APP_NAME"
 fi
 
 stage_bundle "$BUILD_BINARY"
 sign_bundle
 
 case "$MODE" in
+  build|--build)
+    printf '%s\n' "$APP_BUNDLE"
+    ;;
   install|--install)
     install_app
     ;;
@@ -182,9 +196,10 @@ case "$MODE" in
     open_app
     ;;
   --demo|demo)
-    open_app --args -LazyestCleanerDemo YES --demo
+    open_app --args --demo
     ;;
   --debug|debug)
+    /usr/bin/pkill -x "$APP_NAME" >/dev/null 2>&1 || true
     /usr/bin/lldb -- "$APP_BINARY"
     ;;
   --logs|logs)

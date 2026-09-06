@@ -93,7 +93,7 @@ struct ProtectionPolicy: Sendable {
             )
         }
         rules = builtIns + customs
-        protectedBundleIdentifiers = [Bundle.main.bundleIdentifier ?? "com.tidymac.cleaner"]
+        protectedBundleIdentifiers = [Bundle.main.bundleIdentifier ?? "com.lazyest.cleaner"]
     }
 
     func decision(for url: URL, bundleIdentifier: String? = nil) -> ProtectionDecision {

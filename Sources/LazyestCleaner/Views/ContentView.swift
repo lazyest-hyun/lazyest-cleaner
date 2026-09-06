@@ -48,7 +48,7 @@ struct ContentView: View {
                 await store.refreshFullDiskAccessAfterReturning()
             }
         }
-        .frame(minWidth: 860, minHeight: DesignTokens.minimumWindowHeight)
+        .frame(minWidth: DesignTokens.minimumWindowWidth, minHeight: DesignTokens.minimumWindowHeight)
     }
 
     @ViewBuilder

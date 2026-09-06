@@ -58,7 +58,7 @@ actor ApplicationSizeService: ApplicationSizing {
         self.cacheURL =
             cacheURL
             ?? resolvedHome
-            .appending(path: "Library/Caches/com.tidymac.cleaner")
+            .appending(path: "Library/Caches/com.lazyest.cleaner")
             .appending(path: "application-sizes-v1.json")
     }
 

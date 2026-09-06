@@ -4,8 +4,8 @@ import XCTest
 
 final class LiveScanBenchmarkTests: XCTestCase {
     func testLiveFullScanTimings() async throws {
-        guard ProcessInfo.processInfo.environment["TIDYMAC_LIVE_SCAN_BENCHMARK"] == "1" else {
-            throw XCTSkip("Set TIDYMAC_LIVE_SCAN_BENCHMARK=1 to scan the current Mac.")
+        guard ProcessInfo.processInfo.environment["LAZYEST_CLEANER_LIVE_SCAN_BENCHMARK"] == "1" else {
+            throw XCTSkip("Set LAZYEST_CLEANER_LIVE_SCAN_BENCHMARK=1 to scan the current Mac.")
         }
 
         let coordinator = ScanCoordinator()

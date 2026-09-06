@@ -94,6 +94,7 @@ private struct OverviewScanControl: View {
             UnifiedActionButton(action: .scanAll, presentation: .prominent)
                 .opacity(store.isScanning ? 0 : 1)
                 .allowsHitTesting(!store.isScanning)
+                .accessibilityHidden(store.isScanning)
 
             HStack(spacing: DesignTokens.spacing8) {
                 Text(store.scanStatusTitle ?? "스캔 중")
@@ -104,6 +105,7 @@ private struct OverviewScanControl: View {
             }
             .opacity(store.isScanning ? 1 : 0)
             .allowsHitTesting(store.isScanning)
+            .accessibilityHidden(!store.isScanning)
         }
         .frame(width: 190, height: 32, alignment: .trailing)
     }

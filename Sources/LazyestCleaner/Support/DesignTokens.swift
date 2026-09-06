@@ -1,6 +1,7 @@
-import CoreGraphics
+import SwiftUI
 
 enum DesignTokens {
+    static let accent = Color(red: 0.30, green: 0.49, blue: 0.76)
     static let spacing4: CGFloat = 4
     static let spacing8: CGFloat = 8
     static let spacing12: CGFloat = 12

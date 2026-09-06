@@ -2,6 +2,14 @@
 
 Lazyest Cleaner는 macOS 저장 공간을 한 창에서 스캔하고, 사용자가 확인한 항목만 정리하는 네이티브 SwiftUI 앱이다. macOS 14 이상과 Apple Silicon/Intel Mac을 지원한다.
 
+현재 버전은 **1.1.0**입니다.
+
+![Lazyest Cleaner 저장 공간 개요](docs/images/cleaner-overview.png)
+
+![Lazyest Cleaner 파일 검토](docs/images/cleaner-files.png)
+
+문서 이미지는 실제 콘텐츠 화면에 예시 데이터와 고정 사이드바를 조합한 렌더입니다. 개인 파일을 스캔하거나 계정 정보를 사용하지 않습니다.
+
 ## 주요 작업
 
 | 영역 | 기능 |
@@ -30,17 +38,19 @@ Lazyest Cleaner는 macOS 저장 공간을 한 창에서 스캔하고, 사용자�
 
 ## AI Agent 설치
 
-사용자가 설치를 요청했다면 아래 한 명령으로 최신 소스를 임시로 받아 빌드하고 `/Applications/Lazyest Cleaner.app`에 설치한 뒤 실행한다.
+소스 저장소 접근 권한이 있는 계정에서 사용자가 설치를 요청했다면 아래 한 명령으로 최신 소스를 임시로 받아 빌드하고 `/Applications/Lazyest Cleaner.app`에 설치한 뒤 실행한다.
 
 ```sh
 (workdir="$(mktemp -d)" && trap 'rm -rf "$workdir"' EXIT && git clone --depth 1 --quiet https://github.com/lazyest-hyun/lazyest-cleaner.git "$workdir" && "$workdir/script/build_and_run.sh" install)
 ```
 
-기존 `Lazyest Tidy.app`, `정돈.app` 또는 `TidyMac.app`이 있으면 새 앱으로 교체하며 bundle ID와 기존 정리 기록은 유지한다. 스캔이나 정리 작업은 사용자가 앱에서 직접 시작하기 전에는 실행하지 않는다.
+처음 설치하면 자동 스캔은 꺼져 있습니다. 사용자가 스캔과 정리 항목을 직접 선택합니다. 기존 버전에서 업그레이드하면 보호 경로와 사용자 설정, 정리 기록을 보존합니다. 새 bundle ID는 `com.lazyest.cleaner`이므로 기존 사용자는 필요한 경우 시스템 설정에서 새 앱에 전체 디스크 접근 권한을 다시 허용해야 합니다.
 
-## 공개 다운로드
+## 설치와 배포 상태
 
-일반 사용자는 [최신 GitHub Release](https://github.com/lazyest-hyun/lazyest-cleaner/releases/latest)의 PKG 설치 프로그램을 내려받는다. 공개 배포 파일은 Universal Binary로 만들고 Developer ID 서명, Apple 공증, 스테이플 및 Gatekeeper 검증을 완료한다.
+2026년 9월 6일 기준 **1.1.0 Apple Silicon·Intel 공용 DMG**를 로컬에서 준비하고 앱·DMG의 Developer ID 서명, Apple 공증, 스테이플과 Gatekeeper 검증을 완료했습니다. 이 새 버전은 아직 공개 GitHub Release에 게시하지 않았습니다. 공개 페이지에 남아 있는 PKG는 이전 버전이며 이번 DMG와 다릅니다.
+
+공개되면 DMG와 SHA-256 체크섬을 확인한 뒤 앱을 `/Applications`로 옮겨 실행합니다. 지금 소스에서 설치하려면 위 설치 명령을 사용합니다.
 
 ## 로컬 빌드 및 검증
 
@@ -48,12 +58,15 @@ Lazyest Cleaner는 macOS 저장 공간을 한 창에서 스캔하고, 사용자�
 
 - macOS 14 이상
 - 앱 빌드: Swift 6을 포함한 Xcode Command Line Tools
-- XCTest 테스트 실행: XCTest가 포함된 Xcode 또는 Command Line Tools
+- XCTest 테스트 실행: 전체 Xcode의 XCTest 프레임워크. Command Line Tools만 설치된 Mac에서는 앱 빌드가 가능하지만 테스트 모듈이 없을 수 있습니다.
 
 ```bash
-swift test --disable-sandbox
+DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer" swift test --disable-sandbox
+./script/build_and_run.sh build
 ./script/build_and_run.sh install
 ```
+
+`build`는 현재 기기의 release 앱을 만들고 실행 중인 앱을 건드리지 않습니다. `install`만 검증된 앱을 `/Applications`에 교체하고 실행합니다. 복사가 실패하면 기존 앱을 복구합니다.
 
 유니버설 앱과 ZIP 패키지 생성:
 
@@ -63,7 +76,7 @@ swift test --disable-sandbox
 
 결과는 `dist/Lazyest Cleaner.app`과 `dist/Lazyest-Cleaner-<version>-universal.zip`에 생성된다. 스크립트는 사용 가능한 Developer ID 또는 Apple Development 인증서를 우선 사용하고, 인증서가 없으면 로컬 검증용 ad hoc 서명을 적용한다. 외부 배포에는 별도의 Developer ID 서명과 Apple 공증이 필요하다.
 
-공개 배포 패키지는 인증서와 Keychain 공증 프로필이 준비된 Mac에서만 생성한다. 인증 값은 저장소에 기록하지 않는다.
+현재 DMG 배포 절차는 아래 `DMG 패키지`를 사용합니다. 별도 PKG가 필요한 배포자는 Developer ID Installer 인증서와 Keychain 공증 프로필까지 준비한 뒤 아래 선택 절차를 사용할 수 있습니다. 인증 값은 저장소에 기록하지 않습니다.
 
 ```bash
 CLEANER_CODESIGN_IDENTITY="Developer ID Application: ..." \
@@ -90,3 +103,31 @@ CLEANER_NOTARY_PROFILE="lazyest-notary" \
 - `Tests`: 파서, 스캐너, 보호, 실행, UI 심볼, 실제 환경 성능 경계
 
 세부 제품 경계는 [PRODUCT_ARCHITECTURE.md](PRODUCT_ARCHITECTURE.md), 시각 규칙은 [DESIGN.md](DESIGN.md), 개인정보 처리는 [PRIVACY.md](PRIVACY.md), 보안 모델은 [SECURITY.md](SECURITY.md)를 따른다.
+
+## 처음 사용하는 순서
+
+1. 개요에서 `전체 스캔`을 누르거나 왼쪽에서 필요한 영역을 선택합니다.
+2. 파일 이름과 용량을 검토하고 정리할 항목만 선택합니다. 보호 표시가 있는 항목은 정리할 수 없습니다.
+3. 하단 버튼을 누른 뒤 확인 창에서 실제 처리 방식을 다시 확인합니다. 기본 파일 정리는 휴지통으로 이동합니다.
+4. 작업 결과는 `기록`에서 확인합니다. 추가 설명은 항목과 버튼의 툴팁에서 볼 수 있습니다.
+
+문서 화면은 디스크 스캔 없이 재생성할 수 있습니다.
+
+```sh
+swift build --disable-sandbox
+.build/debug/LazyestCleaner --export-preview docs/images
+```
+
+예전 제품 이름은 기존 설정과 기록을 옮기거나 식별자가 일치하는 이전 앱을 제거하는 호환 코드에만 남아 있습니다. 현재 화면, 새 저장 경로, 배포 파일에는 Lazyest Cleaner 이름을 사용합니다.
+
+### DMG 패키지
+
+현재 배포 형식은 DMG입니다. Developer ID Application으로 서명한 앱을 준비하면 Installer 인증서 없이 패키징할 수 있습니다. 이 명령은 앱과 DMG를 각각 Apple에 공증하고 Gatekeeper 검사를 통과한 파일 및 상대 경로 SHA-256 체크섬을 남깁니다. 공개 업로드는 수행하지 않습니다.
+
+```sh
+LAZYEST_CODESIGN_IDENTITY="Developer ID Application: <publisher> (<team-id>)" \
+LAZYEST_NOTARY_PROFILE="lazyest-notary" \
+scripts/package-dmg.sh "$PWD/dist/Lazyest Cleaner.app" "$PWD/dist/Lazyest-Cleaner-macOS.dmg"
+```
+
+DMG를 열고 앱을 Applications로 옮긴 뒤 `/Applications`의 앱을 실행합니다. 현재 검증한 1.1.0 DMG는 Apple Silicon·Intel 공용용입니다. 다른 CPU용 배포를 추가하려면 해당 빌드와 실행을 별도로 검증해야 합니다. 소스 변경 후에는 앱을 다시 빌드하고 서명해야 합니다.

@@ -40,7 +40,10 @@ final class AppSettings {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        autoScan = defaults.object(forKey: Key.autoScan) == nil ? true : defaults.bool(forKey: Key.autoScan)
+        if defaults === UserDefaults.standard {
+            LegacyMigration.migratePreferences(to: defaults)
+        }
+        autoScan = defaults.bool(forKey: Key.autoScan)
         includeHiddenFiles = defaults.bool(forKey: Key.includeHiddenFiles)
         allowImmediateRemoval = defaults.bool(forKey: Key.allowImmediateRemoval)
         includeDockerVolumes = defaults.bool(forKey: Key.includeDockerVolumes)

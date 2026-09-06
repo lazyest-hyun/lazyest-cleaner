@@ -110,22 +110,16 @@ struct BottomActionBar: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
-            .frame(maxWidth: 360, alignment: .leading)
-            Text(DisplayFormatting.bytes(item.size))
-                .font(.callout.monospacedDigit())
-                .foregroundStyle(.secondary)
-            RiskMarkView(risk: item.risk, compact: true)
-            if let path = item.url?.path {
-                Button {
-                    NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(path, forType: .string)
-                } label: {
-                    Image(systemName: "doc.on.doc")
-                        .frame(width: 26, height: 26)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .layoutPriority(-1)
+            .help("\(item.url?.path ?? item.source)\n\(DisplayFormatting.bytes(item.size))")
+            .contextMenu {
+                if let path = item.url?.path {
+                    Button("경로 복사") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(path, forType: .string)
+                    }
                 }
-                .buttonStyle(.borderless)
-                .help("경로 복사")
-                .accessibilityLabel("경로 복사")
             }
         } else {
             Label(

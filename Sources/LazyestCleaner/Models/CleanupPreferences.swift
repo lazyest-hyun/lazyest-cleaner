@@ -1,7 +1,7 @@
 import Foundation
 
 struct CleanupPreferences: Codable, Sendable {
-    var autoScan: Bool = true
+    var autoScan: Bool = false
     var includeHiddenFiles: Bool = false
     var allowImmediateRemoval: Bool = false
     var includeDockerVolumes: Bool = false

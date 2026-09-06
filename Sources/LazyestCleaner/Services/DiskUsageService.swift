@@ -75,7 +75,7 @@ actor DiskUsageService: DiskUsageMeasuring {
         self.cacheURL =
             cacheURL
             ?? resolvedHome
-            .appending(path: "Library/Caches/com.tidymac.cleaner")
+            .appending(path: "Library/Caches/com.lazyest.cleaner")
             .appending(path: "directory-sizes-v1.json")
     }
 

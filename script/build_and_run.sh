@@ -74,16 +74,18 @@ resolve_swift_interface_args() {
     exit 1
   fi
 
-  SWIFT_INTERFACE_ARGS=(-Xswiftc -interface-compiler-version -Xswiftc "$requested_version")
+  SWIFT_BUILD_ARGS+=(-Xswiftc -interface-compiler-version -Xswiftc "$requested_version")
   printf 'Using macOS SDK Swift interface compatibility %s for compiler %s\n' \
     "$requested_version" "$compiler_version" >&2
 }
 
-SWIFT_INTERFACE_ARGS=()
+# Bash 3.2 treats an empty array as unset under nounset. Keep the required
+# build argument in the array, then append optional interface compatibility flags.
+SWIFT_BUILD_ARGS=(--disable-sandbox)
 resolve_swift_interface_args
 
 swift_build() {
-  /usr/bin/xcrun swift build --disable-sandbox "${SWIFT_INTERFACE_ARGS[@]}" -Xswiftc -gnone -Xswiftc -file-prefix-map -Xswiftc "$ROOT_DIR=." "$@"
+  /usr/bin/xcrun swift build "${SWIFT_BUILD_ARGS[@]}" -Xswiftc -gnone -Xswiftc -file-prefix-map -Xswiftc "$ROOT_DIR=." "$@"
 }
 
 build_native() {

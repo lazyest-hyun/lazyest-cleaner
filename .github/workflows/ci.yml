@@ -21,6 +21,7 @@ jobs:
       - name: Validate metadata and script
         run: |
           bash -n script/build_and_run.sh
+          /bin/bash script/test_build_args.sh
           plutil -lint Resources/Info.plist
 
       - name: Test
